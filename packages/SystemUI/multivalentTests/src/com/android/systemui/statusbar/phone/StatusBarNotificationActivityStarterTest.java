@@ -278,6 +278,7 @@ public class StatusBarNotificationActivityStarterTest extends SysuiTestCase {
                         mock(MetricsLogger.class),
                         new StatusBarNotificationActivityStarterLogger(logcatLogBuffer()),
                         mOnUserInteractionCallback,
+                        mock(CentralSurfaces.class),
                         mock(NotificationPresenter.class),
                         mock(PanelExpansionInteractor.class),
                         mock(NotificationShadeWindowController.class),

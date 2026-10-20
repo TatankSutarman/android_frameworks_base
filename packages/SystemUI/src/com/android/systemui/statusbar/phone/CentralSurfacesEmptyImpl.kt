@@ -23,6 +23,7 @@ import com.android.systemui.animation.ActivityTransitionAnimator
 import com.android.systemui.navigationbar.views.NavigationBarView
 import com.android.systemui.plugins.ActivityStarter.OnDismissAction
 import com.android.systemui.statusbar.notification.row.ExpandableNotificationRow
+import com.android.systemui.statusbar.policy.GameSpaceManager
 
 /**
  * Empty implementation of [CentralSurfaces] for variants only need to override portions of the
@@ -157,4 +158,6 @@ abstract class CentralSurfacesEmptyImpl : CentralSurfaces {
     override fun getAnimatorControllerFromNotification(
         associatedView: ExpandableNotificationRow?
     ): ActivityTransitionAnimator.Controller? = null
+
+    override fun getGameSpaceManager(): GameSpaceManager? = null
 }

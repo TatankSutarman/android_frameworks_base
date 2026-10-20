@@ -6268,6 +6268,21 @@ public final class Settings {
         public static final String VIBRATE_WHEN_RINGING = "vibrate_when_ringing";
 
         /**
+         * The list of games in GameSpace.
+         * @hide
+         */
+        @Readable
+        public static final String GAMESPACE_GAME_LIST = "gamespace_game_list";
+
+        /**
+         * Whether to suppress full screen intents while a game is active.
+         * @hide
+         */
+        @Readable
+        public static final String GAMESPACE_SUPPRESS_FULLSCREEN_INTENT =
+                "gamespace_suppress_fullscreen_intent";
+
+        /**
          * When {@code 1}, Telecom enhanced call blocking functionality is enabled.  When
          * {@code 0}, enhanced call blocking functionality is disabled.
          * @hide

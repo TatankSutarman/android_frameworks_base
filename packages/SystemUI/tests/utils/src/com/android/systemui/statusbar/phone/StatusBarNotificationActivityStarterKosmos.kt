@@ -82,6 +82,7 @@ val Kosmos.statusBarNotificationActivityStarter by
             metricsLogger,
             statusBarNotificationActivityStarterLogger,
             onUserInteractionCallback,
+            centralSurfaces,
             notificationPresenter,
             panelExpansionInteractor,
             notificationShadeWindowController,
