@@ -56,6 +56,7 @@ import com.android.systemui.settings.UserContextProvider;
 import com.android.systemui.statusbar.phone.KeyguardDismissUtil;
 
 import java.io.IOException;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
@@ -99,6 +100,41 @@ public class RecordingService extends Service implements ScreenMediaRecorderList
     protected static final String EXTRA_NOTIFICATION_ID = "notification_id";
 
     private final ScreenRecordUxController mController;
+    private final CopyOnWriteArrayList<IRecordingCallback> mRecordingCallbacks =
+            new CopyOnWriteArrayList<>();
+    private final ScreenRecordUxController.StateChangeCallback mStateChangeCallback =
+            new ScreenRecordUxController.StateChangeCallback() {
+                @Override
+                public void onCountdown(long millisUntilFinished) {
+                }
+
+                @Override
+                public void onCountdownEnd() {
+                }
+
+                @Override
+                public void onRecordingStart() {
+                    for (IRecordingCallback callback : mRecordingCallbacks) {
+                        try {
+                            callback.onRecordingStart();
+                        } catch (RemoteException e) {
+                            // The client is gone; it will be removed on the next bind cycle.
+                        }
+                    }
+                }
+
+                @Override
+                public void onRecordingEnd() {
+                    for (IRecordingCallback callback : mRecordingCallbacks) {
+                        try {
+                            callback.onRecordingEnd();
+                        } catch (RemoteException e) {
+                            // The client is gone; it will be removed on the next bind cycle.
+                        }
+                    }
+                }
+            };
+    private final RecordingServiceBinder mBinder = new RecordingServiceBinder();
     protected final KeyguardDismissUtil mKeyguardDismissUtil;
     private final Handler mMainHandler;
     private ScreenRecordingAudioSource mAudioSource = ScreenRecordingAudioSource.NONE;
@@ -297,12 +333,19 @@ public class RecordingService extends Service implements ScreenMediaRecorderList
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mController.addCallback(mStateChangeCallback);
+    }
+
+    @Override
+    public void onDestroy() {
+        mController.removeCallback(mStateChangeCallback);
+        super.onDestroy();
     }
 
     @Nullable
@@ -665,6 +708,42 @@ public class RecordingService extends Service implements ScreenMediaRecorderList
             Log.d(getTag(), "Stopping recording for user " + userId
                     + " because the system requested the stop");
             stopService(userId, stopReason);
+        }
+    }
+
+    private final class RecordingServiceBinder extends IRemoteRecording.Stub {
+        @Override
+        public void startRecording() {
+            mMainHandler.post(() -> mController.createScreenRecordDialog(null).show());
+        }
+
+        @Override
+        public void stopRecording() {
+            Intent intent = new Intent(RecordingService.this, RecordingService.class);
+            intent.setAction(ACTION_STOP_NOTIF);
+            RecordingService.this.startService(intent);
+        }
+
+        @Override
+        public boolean isRecording() {
+            return mController.isRecording();
+        }
+
+        @Override
+        public boolean isStarting() {
+            return mController.isStarting();
+        }
+
+        @Override
+        public void addRecordingCallback(IRecordingCallback callback) {
+            if (callback != null && !mRecordingCallbacks.contains(callback)) {
+                mRecordingCallbacks.add(callback);
+            }
+        }
+
+        @Override
+        public void removeRecordingCallback(IRecordingCallback callback) {
+            mRecordingCallbacks.remove(callback);
         }
     }
 }
