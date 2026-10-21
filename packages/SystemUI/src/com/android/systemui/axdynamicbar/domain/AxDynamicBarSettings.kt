@@ -30,6 +30,28 @@ class AxDynamicBarSettings @Inject constructor(
         const val KEY_KEYGUARD_BATTERY_CHIP_MODE = "ax_dynamic_bar_keyguard_battery_chip_mode"
         const val KEY_COMPACT_NOTIFICATIONS = "ax_dynamic_bar_compact_notifications"
         const val KEY_CHIP_STYLE = "ax_dynamic_bar_chip_style"
+
+        /**
+         * Stage-one rollout: keep media, charging, notifications, calls, and screen recording
+         * active; leave the remaining event sources opt-in until they have been validated on
+         * LineageOS. Users can override this through [KEY_EVENTS].
+         */
+        private val DEFAULT_DISABLED_EVENT_TYPES =
+            setOf(
+                "bluetooth",
+                "hotspot",
+                "vpn",
+                "alarm",
+                "timer",
+                "stopwatch",
+                "ringer",
+                "clipboard",
+                "app_switch",
+                "torch",
+                "biometric_unlock",
+                "sports",
+                "promoted_ongoing",
+            )
     }
 
     private val _isEnabled = MutableStateFlow(false)
@@ -199,13 +221,13 @@ class AxDynamicBarSettings @Inject constructor(
         val json = secureSettings.getStringForUser(KEY_EVENTS, UserHandle.USER_CURRENT) ?: ""
         _disabledEventTypes.value =
             try {
-                if (json.isBlank()) emptySet()
+                if (json.isBlank()) DEFAULT_DISABLED_EVENT_TYPES
                 else {
                     val arr = JSONArray(json)
                     (0 until arr.length()).mapNotNull { arr.optString(it) }.toSet()
                 }
             } catch (_: Exception) {
-                emptySet()
+                DEFAULT_DISABLED_EVENT_TYPES
             }
     }
 
