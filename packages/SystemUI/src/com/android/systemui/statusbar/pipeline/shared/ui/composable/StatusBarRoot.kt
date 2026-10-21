@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,6 +70,8 @@ import com.android.compose.modifiers.thenIf
 import com.android.compose.theme.PlatformTheme
 import com.android.compose.theme.colorAttr
 import com.android.systemui.Flags
+import com.android.systemui.axdynamicbar.ui.AxDynamicBarChipViewModel
+import com.android.systemui.axdynamicbar.ui.compose.AxDynamicBarChip
 import com.android.systemui.clock.ClockModernization
 import com.android.systemui.clock.ui.composable.Clock
 import com.android.systemui.clock.ui.viewmodel.AmPmStyle
@@ -149,6 +152,7 @@ constructor(
     @DisplayAware private val headlineViewModelFactory: HeadlineViewModel.Factory,
     private val statusBarRegionSamplingViewModelFactory: StatusBarRegionSamplingViewModel.Factory,
     private val shadeWindowRootView: WindowRootView,
+    private val axDynamicBarChipViewModel: AxDynamicBarChipViewModel,
 ) {
     fun create(root: ViewGroup, andThen: (ViewGroup) -> Unit): ComposeView {
         val composeView = ComposeView(root.context)
@@ -172,6 +176,7 @@ constructor(
                         eventAnimationInteractor = eventAnimationInteractor,
                         statusBarRegionSamplingViewModelFactory =
                             statusBarRegionSamplingViewModelFactory,
+                        axDynamicBarChipViewModel = axDynamicBarChipViewModel,
                         onViewCreated = andThen,
                         modifier = Modifier.sysUiResTagContainer(),
                     )
@@ -210,6 +215,7 @@ fun StatusBarRoot(
     darkIconDispatcher: DarkIconDispatcher,
     eventAnimationInteractor: SystemStatusEventAnimationInteractor,
     statusBarRegionSamplingViewModelFactory: StatusBarRegionSamplingViewModel.Factory,
+    axDynamicBarChipViewModel: AxDynamicBarChipViewModel,
     onViewCreated: (ViewGroup) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -268,6 +274,7 @@ fun StatusBarRoot(
                     statusBarViewModel = statusBarViewModel,
                     iconViewStore = iconViewStore,
                     appHandlesViewModel = appHandlesViewModel,
+                    axDynamicBarChipViewModel = axDynamicBarChipViewModel,
                     context = context,
                 )
 
@@ -396,6 +403,7 @@ private fun addStartSideComposable(
     statusBarViewModel: HomeStatusBarViewModel,
     iconViewStore: NotificationIconContainerViewBinder.IconViewStore?,
     appHandlesViewModel: AppHandlesViewModel,
+    axDynamicBarChipViewModel: AxDynamicBarChipViewModel,
     context: Context,
 ) {
     val startSideExceptHeadsUp =
@@ -508,6 +516,15 @@ private fun addStartSideComposable(
                             density = density,
                         )
                     }
+
+                val axEnabled by
+                    axDynamicBarChipViewModel.interactor.settings.isEnabled.collectAsState()
+                if (axEnabled) {
+                    AxDynamicBarChip(
+                        viewModel = axDynamicBarChipViewModel,
+                        modifier = Modifier.widthIn(max = chipsMaxWidth),
+                    )
+                }
 
                 val chipsVisibilityModel = statusBarViewModel.ongoingActivityChips
                 if (chipsVisibilityModel.areChipsAllowed) {
