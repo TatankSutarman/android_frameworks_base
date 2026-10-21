@@ -47,6 +47,7 @@ import android.app.IGameStateListener;
 import android.app.StatsManager;
 import android.app.UidObserver;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -59,6 +60,7 @@ import android.content.res.CompatibilityInfo.CompatScale;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
+import android.database.ContentObserver;
 import android.hardware.power.Mode;
 import android.net.Uri;
 import android.os.Binder;
@@ -80,6 +82,7 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.DeviceConfig;
 import android.provider.DeviceConfig.Properties;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.AtomicFile;
@@ -174,6 +177,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
     @VisibleForTesting
     final AtomicFile mGameModeInterventionListFile;
     private DeviceConfigListener mDeviceConfigListener;
+    private SettingsObserver mSettingsObserver;
     @GuardedBy("mLock")
     private final ArrayMap<Integer, GameManagerSettings> mSettings = new ArrayMap<>();
     @GuardedBy("mDeviceConfigLock")
@@ -470,6 +474,44 @@ public final class GameManagerService extends IGameManagerService.Stub {
         @Override
         public void finalize() {
             DeviceConfig.removeOnPropertiesChangedListener(this);
+        }
+    }
+
+    /**
+     * Translates the GameSpace secure setting into a DeviceConfig property. The
+     * GameSpace app writes "packageName;;config" and GamePackageConfiguration
+     * reads the per-package config from DeviceConfig.
+     */
+    private class SettingsObserver extends ContentObserver {
+        private final ContentResolver mContentResolver;
+
+        SettingsObserver(Handler handler) {
+            super(handler);
+            mContentResolver = mContext.getContentResolver();
+            mContentResolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.GAME_OVERLAY),
+                    false, this, UserHandle.USER_ALL);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            synchronized (mDeviceConfigLock) {
+                final String newValue = Settings.Secure.getStringForUser(
+                        mContentResolver, Settings.Secure.GAME_OVERLAY,
+                        UserHandle.USER_CURRENT);
+                if (newValue == null) {
+                    return;
+                }
+
+                // The GameSpace app sends "packageName;;config".
+                final String[] parsedValues = newValue.split(";;");
+                if (parsedValues.length < 2) {
+                    return;
+                }
+
+                DeviceConfig.setProperty(DeviceConfig.NAMESPACE_GAME_OVERLAY,
+                        parsedValues[0], parsedValues[1], false);
+            }
         }
     }
 
@@ -2109,6 +2151,7 @@ public final class GameManagerService extends IGameManagerService.Stub {
 
     private void registerDeviceConfigListener() {
         mDeviceConfigListener = new DeviceConfigListener();
+        mSettingsObserver = new SettingsObserver(mHandler);
     }
 
     private void publishLocalService() {
