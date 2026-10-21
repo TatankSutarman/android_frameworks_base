@@ -6283,6 +6283,13 @@ public final class Settings {
                 "gamespace_suppress_fullscreen_intent";
 
         /**
+         * Three finger gesture setting.
+         * @hide
+         */
+        @Readable
+        public static final String THREE_FINGER_GESTURE = "three_finger_gesture";
+
+        /**
          * When {@code 1}, Telecom enhanced call blocking functionality is enabled.  When
          * {@code 0}, enhanced call blocking functionality is disabled.
          * @hide
@@ -7431,6 +7438,12 @@ public final class Settings {
          */
         public static final Uri CONTENT_URI =
             Uri.parse("content://" + AUTHORITY + "/secure");
+
+        /**
+         * Game overlay configuration used by GameSpace.
+         * @hide
+         */
+        public static final String GAME_OVERLAY = "game_overlay";
 
         @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.R, trackingBug = 170729553)
         private static final ContentProviderHolder sProviderHolder =
