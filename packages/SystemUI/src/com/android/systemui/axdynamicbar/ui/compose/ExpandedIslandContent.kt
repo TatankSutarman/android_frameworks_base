@@ -48,7 +48,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.systemui.axdynamicbar.shared.IslandActions
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.android.systemui.haptics.slider.compose.ui.SliderHapticsViewModel
 import kotlinx.coroutines.delay
 import com.android.systemui.axdynamicbar.model.IslandEvent

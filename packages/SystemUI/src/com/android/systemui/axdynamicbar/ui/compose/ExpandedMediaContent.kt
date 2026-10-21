@@ -34,8 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.font.DeviceFontFamilyName
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.material3.MaterialTheme
 import com.android.compose.theme.PlatformTheme
@@ -61,7 +59,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.android.systemui.axdynamicbar.shared.IslandActions
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.android.systemui.axdynamicbar.model.IslandEvent
 import com.android.systemui.axdynamicbar.shared.*
 import com.android.systemui.media.controls.ui.view.WaveformSeekBar
@@ -151,7 +148,7 @@ internal fun MediaCard(event: IslandEvent.Media, interactor: IslandActions) {
                                 event.track.ifEmpty { stringResource(R.string.ax_dynamic_bar_now_playing) },
                                 color = OnCardText,
                                 style = MaterialTheme.typography.titleMedium.copy(
-                                    fontFamily = FontFamily(Font(DeviceFontFamilyName("variable-title-medium-emphasized")))
+                                    fontFamily = FontFamily.Default
                                 ),
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
@@ -241,7 +238,7 @@ internal fun MediaExpanded(
                         event.track.ifEmpty { stringResource(R.string.ax_dynamic_bar_now_playing) },
                         color = OnCardText,
                         style = MaterialTheme.typography.titleSmall.copy(
-                            fontFamily = FontFamily(Font(DeviceFontFamilyName("variable-title-medium-emphasized")))
+                            fontFamily = FontFamily.Default
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -595,7 +592,7 @@ internal fun RowScope.CompactMediaRow(
                     event.track.ifEmpty { stringResource(R.string.ax_dynamic_bar_music) },
                     color = OnCardText,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        fontFamily = FontFamily(Font(DeviceFontFamilyName("variable-title-medium-emphasized")))
+                        fontFamily = FontFamily.Default
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

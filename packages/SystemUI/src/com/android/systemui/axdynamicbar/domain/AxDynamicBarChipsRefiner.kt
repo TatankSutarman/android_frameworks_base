@@ -17,8 +17,6 @@
 package com.android.systemui.axdynamicbar.domain
 
 import com.android.systemui.dagger.SysUISingleton
-import com.android.systemui.statusbar.chips.call.ui.viewmodel.CallChipViewModel
-import com.android.systemui.statusbar.chips.screenrecord.ui.viewmodel.ScreenRecordChipViewModel
 import com.android.systemui.statusbar.chips.ui.model.MultipleOngoingActivityChipsModel
 import com.android.systemui.statusbar.chips.ui.viewmodel.OngoingActivityChipsRefiner
 import javax.inject.Inject
@@ -36,28 +34,10 @@ class AxDynamicBarChipsRefiner @Inject constructor(
 
     override fun transform(input: MultipleOngoingActivityChipsModel): MultipleOngoingActivityChipsModel {
         _chipsFlow.value = input
-        if (settings.isEnabled.value) {
-            return input.copy(
-                active = input.active.map { chip -> chip.copy(isHidden = true) },
-            )
-        }
+        if (!settings.isEnabled.value) return input
 
-        val hideCalls = settings.isDynamicIslandCallsActive.value
-        val hideScreenRecord = settings.isDynamicIslandScreenRecordingActive.value
-        if (hideCalls || hideScreenRecord) {
-            return input.copy(
-                active = input.active.map { chip ->
-                    val shouldHide = (hideCalls && chip.key.startsWith(CallChipViewModel.KEY_PREFIX)) ||
-                        (hideScreenRecord && chip.key == ScreenRecordChipViewModel.KEY)
-                    if (shouldHide) {
-                        chip.copy(isHidden = true)
-                    } else {
-                        chip
-                    }
-                },
-            )
-        }
-
-        return input
+        return input.copy(
+            active = input.active.map { chip -> chip.copy(isHidden = true) },
+        )
     }
 }

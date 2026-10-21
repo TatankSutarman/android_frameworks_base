@@ -57,8 +57,6 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.font.DeviceFontFamilyName
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -365,7 +363,7 @@ private fun KeyguardMediaPanel(event: IslandEvent.Media, interactor: IslandActio
                 title,
                 color = Color.White,
                 style = MaterialTheme.typography.titleLarge.copy(
-                    fontFamily = FontFamily(Font(DeviceFontFamilyName("variable-title-medium-emphasized")))
+                    fontFamily = FontFamily.Default
                 ),
                 textAlign = TextAlign.Center,
                 maxLines = 2,

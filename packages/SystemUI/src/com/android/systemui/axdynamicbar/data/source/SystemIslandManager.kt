@@ -588,7 +588,7 @@ constructor(
                             val event =
                                 IslandEvent.Charging(
                                     level = snap.level,
-                                    isWireless = batteryController.isWirelessCharging,
+                                    isWireless = batteryController.isPluggedInWireless,
                                     isPowerSave = snap.isPowerSave,
                                     timeRemaining = snap.timeEst,
                                 )

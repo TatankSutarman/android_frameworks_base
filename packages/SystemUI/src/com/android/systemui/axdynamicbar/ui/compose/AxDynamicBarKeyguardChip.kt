@@ -61,12 +61,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.font.DeviceFontFamilyName
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -435,7 +432,7 @@ private fun KeyguardChipBody(
                             stringResource(R.string.ax_dynamic_bar_music)
                         },
                         style = PillPrimary.copy(
-                            fontFamily = FontFamily(Font(DeviceFontFamilyName("variable-title-medium-emphasized")))
+                            fontFamily = FontFamily.Default
                         ),
                         color = contentColor,
                         maxLines = 1,
