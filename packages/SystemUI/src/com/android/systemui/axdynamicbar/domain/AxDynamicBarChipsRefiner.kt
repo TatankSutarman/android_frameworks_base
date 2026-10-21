@@ -17,6 +17,8 @@
 package com.android.systemui.axdynamicbar.domain
 
 import com.android.systemui.dagger.SysUISingleton
+import com.android.systemui.plugins.statusbar.StatusBarStateController
+import com.android.systemui.statusbar.StatusBarState
 import com.android.systemui.statusbar.chips.ui.model.MultipleOngoingActivityChipsModel
 import com.android.systemui.statusbar.chips.ui.viewmodel.OngoingActivityChipsRefiner
 import javax.inject.Inject
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.asStateFlow
 @SysUISingleton
 class AxDynamicBarChipsRefiner @Inject constructor(
     private val settings: AxDynamicBarSettings,
+    private val statusBarStateController: StatusBarStateController,
 ) : OngoingActivityChipsRefiner {
 
     private val _chipsFlow = MutableStateFlow(MultipleOngoingActivityChipsModel())
@@ -35,6 +38,9 @@ class AxDynamicBarChipsRefiner @Inject constructor(
     override fun transform(input: MultipleOngoingActivityChipsModel): MultipleOngoingActivityChipsModel {
         _chipsFlow.value = input
         if (!settings.isEnabled.value) return input
+        // The dynamic bar is not rendered on the keyguard yet, so keep the built-in chips as the
+        // fallback there instead of hiding them with no replacement.
+        if (statusBarStateController.state == StatusBarState.KEYGUARD) return input
 
         return input.copy(
             active = input.active.map { chip -> chip.copy(isHidden = true) },
