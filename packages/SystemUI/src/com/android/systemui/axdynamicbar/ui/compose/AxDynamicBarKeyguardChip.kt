@@ -67,6 +67,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -139,6 +140,9 @@ fun AxDynamicBarKeyguardChip(
 ) {
     val rawState by viewModel.chipState.collectAsStateWithLifecycle()
     val state = if (mediaOnly) rawState?.toMediaOnlyState() else rawState
+    // The legacy keyguard expansion only opens once the shade is fully expanded. The
+    // lockscreen media host is directly tappable, so it keeps its own expansion state.
+    var mediaExpanded by remember { mutableStateOf(false) }
     val isOnKeyguard by viewModel.isOnKeyguard.collectAsStateWithLifecycle()
     val isEnabled by viewModel.isEnabled.collectAsStateWithLifecycle()
     val isKeyguardEnabled by viewModel.isKeyguardEnabled.collectAsStateWithLifecycle()
@@ -154,6 +158,15 @@ fun AxDynamicBarKeyguardChip(
 
     val motionScheme = MaterialTheme.motionScheme
     val expandableController = rememberExpandableController(color = Color.Transparent, shape = ChipShape)
+    val isExpanded = if (mediaOnly) mediaExpanded else isKeyguardExpanded
+    val hasMediaState = state != null
+    val onExpandToggle: () -> Unit = {
+        if (mediaOnly) {
+            mediaExpanded = !mediaExpanded
+        } else {
+            viewModel.keyguardExpansion.toggle()
+        }
+    }
 
     val chipBottomPadding =
         if (mediaOnly) {
@@ -164,8 +177,25 @@ fun AxDynamicBarKeyguardChip(
             0.dp
         }
 
-    LaunchedEffect(isDozing, isBouncerShowing, isKeyguardFadingAway) {
-        if (isDozing || isBouncerShowing || isKeyguardFadingAway) {
+    LaunchedEffect(
+        mediaOnly,
+        isLockscreenMediaEnabled,
+        isOnKeyguard,
+        hasMediaState,
+        isDozing,
+        isBouncerShowing,
+        isKeyguardFadingAway,
+    ) {
+        if (mediaOnly) {
+            if (!isOnKeyguard ||
+                !isLockscreenMediaEnabled ||
+                !hasMediaState ||
+                isDozing ||
+                isBouncerShowing ||
+                isKeyguardFadingAway) {
+                mediaExpanded = false
+            }
+        } else if (isDozing || isBouncerShowing || isKeyguardFadingAway) {
             viewModel.keyguardExpansion.collapse()
         }
     }
@@ -174,13 +204,15 @@ fun AxDynamicBarKeyguardChip(
 
         val expandedVisibleState = remember { MutableTransitionState(false) }
         expandedVisibleState.targetState =
-            isKeyguardExpanded &&
+            isExpanded &&
                 state != null &&
                 !isDozing &&
                 !isBouncerShowing &&
                 !isKeyguardFadingAway
         LaunchedEffect(expandedVisibleState.isIdle, expandedVisibleState.currentState) {
-            if (expandedVisibleState.isIdle && !expandedVisibleState.currentState) {
+            if (!mediaOnly &&
+                expandedVisibleState.isIdle &&
+                !expandedVisibleState.currentState) {
                 viewModel.keyguardExpansion.notifyCollapseSettled()
             }
         }
@@ -197,7 +229,13 @@ fun AxDynamicBarKeyguardChip(
                     event = it.event,
                     allEvents = it.allEvents,
                     interactor = viewModel.interactor,
-                    onCollapse = { viewModel.keyguardExpansion.collapse() },
+                    onCollapse = {
+                        if (mediaOnly) {
+                            mediaExpanded = false
+                        } else {
+                            viewModel.keyguardExpansion.collapse()
+                        }
+                    },
                     hapticsViewModelFactory = viewModel.interactor.sliderHapticsViewModelFactory,
                 )
             }
@@ -235,7 +273,7 @@ fun AxDynamicBarKeyguardChip(
             visible =
                 isOnKeyguard &&
                     canShowChipOnKeyguard &&
-                    !isKeyguardExpanded &&
+                    !isExpanded &&
                     !isBouncerShowing &&
                     !isKeyguardFadingAway,
             enter = fadeIn(tween(durationMillis = 200, delayMillis = 300)) +
@@ -334,6 +372,7 @@ fun AxDynamicBarKeyguardChip(
                                     progress = progress,
                                     eventCount = chipState.eventCount,
                                     viewModel = viewModel,
+                                    onExpandToggle = onExpandToggle,
                                     batteryString = batteryString,
                                     aospChipExpandable = expandable,
                                 )
@@ -363,6 +402,7 @@ private fun KeyguardChipBody(
     progress: Float?,
     eventCount: Int,
     viewModel: AxDynamicBarChipViewModel,
+    onExpandToggle: () -> Unit,
     batteryString: String = "",
     aospChipExpandable: SystemUiExpandable,
 ) {
@@ -430,7 +470,7 @@ private fun KeyguardChipBody(
 
                         is IslandEvent.KeyguardIndication,
                         is IslandEvent.AppSwitch -> { }
-                        else -> viewModel.keyguardExpansion.toggle()
+                        else -> onExpandToggle()
                     }
                 }
                 .padding(start = if (event is IslandEvent.Media) 6.dp else SpaceSm, end = if (event is IslandEvent.Media) 8.dp else SpaceMd),
