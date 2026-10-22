@@ -82,6 +82,8 @@ constructor(
     }
 
     override fun removeViews(constraintLayout: ConstraintLayout) {
-        constraintLayout.removeView(hostId)
+        constraintLayout.findViewById<ComposeView>(hostId)?.let { host ->
+            constraintLayout.removeView(host)
+        }
     }
 }

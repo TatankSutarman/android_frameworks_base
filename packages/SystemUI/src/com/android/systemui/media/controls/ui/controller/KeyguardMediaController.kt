@@ -175,7 +175,6 @@ constructor(
         }
         applicationScope.launch {
             axDynamicBarSettings.isLockscreenMediaEnabled
-                .distinctUntilChanged()
                 .collect {
                     // The Dynamic Bar owns the lockscreen media player while this is enabled.
                     refreshMediaPosition(reason = "Dynamic Bar lockscreen media changed")
