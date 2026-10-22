@@ -19,6 +19,7 @@ package com.android.systemui.keyguard.data.repository
 import android.content.applicationContext
 import android.os.fakeExecutorHandler
 import com.android.keyguard.keyguardUnlockAnimationController
+import com.android.systemui.axdynamicbar.ui.AxDynamicBarKeyguardHostSection
 import com.android.systemui.keyguard.domain.interactor.keyguardBlueprintInteractor
 import com.android.systemui.keyguard.domain.interactor.keyguardClockInteractor
 import com.android.systemui.keyguard.domain.interactor.keyguardSmartspaceInteractor
@@ -80,6 +81,7 @@ val Kosmos.defaultKeyguardBlueprint by
             clockSection = keyguardClockSection,
             smartspaceSection = keyguardSmartspaceSection,
             keyguardSliceViewSection = mock(),
+            axDynamicBarKeyguardHostSection = mock<AxDynamicBarKeyguardHostSection>(),
             udfpsAccessibilityOverlaySection = mock(),
             accessibilityActionsSection = mock(),
             batteryChargingPopupMenuSection = mock(),
@@ -104,6 +106,7 @@ val Kosmos.splitShadeBlueprint by
             keyguardSliceViewSection = mock(),
             smartspaceSection = keyguardSmartspaceSection,
             mediaSection = mock(),
+            axDynamicBarKeyguardHostSection = mock<AxDynamicBarKeyguardHostSection>(),
             accessibilityActionsSection = mock(),
             batteryChargingPopupMenuSection = mock(),
         )

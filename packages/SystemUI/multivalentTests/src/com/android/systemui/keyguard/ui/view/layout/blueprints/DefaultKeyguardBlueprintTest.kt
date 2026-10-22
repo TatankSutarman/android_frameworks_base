@@ -23,6 +23,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.systemui.SysuiTestCase
+import com.android.systemui.axdynamicbar.ui.AxDynamicBarKeyguardHostSection
 import com.android.systemui.keyguard.shared.model.KeyguardBlueprint
 import com.android.systemui.keyguard.shared.model.KeyguardSection
 import com.android.systemui.keyguard.ui.view.KeyguardRootView
@@ -72,6 +73,7 @@ class DefaultKeyguardBlueprintTest : SysuiTestCase() {
     @Mock private lateinit var clockSection: ClockSection
     @Mock private lateinit var smartspaceSection: SmartspaceSection
     @Mock private lateinit var keyguardSliceViewSection: KeyguardSliceViewSection
+    @Mock private lateinit var axDynamicBarKeyguardHostSection: AxDynamicBarKeyguardHostSection
     @Mock
     private lateinit var udfpsAccessibilityOverlaySection: DefaultUdfpsAccessibilityOverlaySection
 
@@ -96,6 +98,7 @@ class DefaultKeyguardBlueprintTest : SysuiTestCase() {
                 clockSection,
                 smartspaceSection,
                 keyguardSliceViewSection,
+                axDynamicBarKeyguardHostSection,
                 udfpsAccessibilityOverlaySection,
             )
     }
