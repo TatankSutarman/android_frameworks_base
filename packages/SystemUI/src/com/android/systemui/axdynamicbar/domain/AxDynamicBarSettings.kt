@@ -27,6 +27,7 @@ class AxDynamicBarSettings @Inject constructor(
         const val KEY_KEYGUARD_ENABLED = "ax_dynamic_bar_keyguard_enabled"
         const val KEY_LOCKSCREEN_MEDIA_ENABLED = "infinity_bar_lockscreen_media_enabled"
         const val KEY_LOCKSCREEN_MEDIA_LYRICS_ENABLED = "infinity_bar_lockscreen_media_lyrics_enabled"
+        const val KEY_LOCKSCREEN_WEATHER_ENABLED = "infinity_bar_lockscreen_weather_enabled"
         const val KEY_KEYGUARD_BATTERY_CHIP_MODE = "ax_dynamic_bar_keyguard_battery_chip_mode"
         const val KEY_COMPACT_NOTIFICATIONS = "ax_dynamic_bar_compact_notifications"
         const val KEY_CHIP_STYLE = "ax_dynamic_bar_chip_style"
@@ -65,6 +66,9 @@ class AxDynamicBarSettings @Inject constructor(
 
     private val _isLockscreenMediaLyricsEnabled = MutableStateFlow(false)
     val isLockscreenMediaLyricsEnabled: StateFlow<Boolean> = _isLockscreenMediaLyricsEnabled.asStateFlow()
+
+    private val _isLockscreenWeatherEnabled = MutableStateFlow(false)
+    val isLockscreenWeatherEnabled: StateFlow<Boolean> = _isLockscreenWeatherEnabled.asStateFlow()
 
     private val _keyguardBatteryChipMode = MutableStateFlow(1)
     val keyguardBatteryChipMode: StateFlow<Int> = _keyguardBatteryChipMode.asStateFlow()
@@ -142,6 +146,12 @@ class AxDynamicBarSettings @Inject constructor(
             UserHandle.USER_ALL,
         )
         secureSettings.registerContentObserverForUserSync(
+            KEY_LOCKSCREEN_WEATHER_ENABLED,
+            false,
+            settingsObserver,
+            UserHandle.USER_ALL,
+        )
+        secureSettings.registerContentObserverForUserSync(
             KEY_KEYGUARD_BATTERY_CHIP_MODE,
             false,
             settingsObserver,
@@ -201,6 +211,8 @@ class AxDynamicBarSettings @Inject constructor(
             secureSettings.getIntForUser(KEY_LOCKSCREEN_MEDIA_ENABLED, 0, UserHandle.USER_CURRENT) == 1
         _isLockscreenMediaLyricsEnabled.value =
             secureSettings.getIntForUser(KEY_LOCKSCREEN_MEDIA_LYRICS_ENABLED, 0, UserHandle.USER_CURRENT) == 1
+        _isLockscreenWeatherEnabled.value =
+            secureSettings.getIntForUser(KEY_LOCKSCREEN_WEATHER_ENABLED, 0, UserHandle.USER_CURRENT) == 1
         _keyguardBatteryChipMode.value =
             secureSettings.getIntForUser(KEY_KEYGUARD_BATTERY_CHIP_MODE, 1, UserHandle.USER_CURRENT)
         _compactNotifications.value =

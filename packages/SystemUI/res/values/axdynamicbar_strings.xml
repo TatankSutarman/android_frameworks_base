@@ -98,4 +98,15 @@
     <string name="ax_dynamic_bar_sports_final">Final</string>
     <string name="ax_dynamic_bar_sports_halftime">Halftime</string>
     <string name="ax_dynamic_bar_sports_upcoming">Upcoming</string>
+
+    <!-- Lockscreen weather (OmniJaws) -->
+    <string name="ax_dynamic_bar_weather_text"><xliff:g id="temperature" example="29">%1$s</xliff:g><xliff:g id="unit" example="°C">%2$s</xliff:g> · <xliff:g id="condition" example="Clear">%3$s</xliff:g></string>
+    <string name="ax_dynamic_bar_weather_condition_clear">Clear</string>
+    <string name="ax_dynamic_bar_weather_condition_clouds">Cloudy</string>
+    <string name="ax_dynamic_bar_weather_condition_rain">Rain</string>
+    <string name="ax_dynamic_bar_weather_condition_storm">Thunderstorm</string>
+    <string name="ax_dynamic_bar_weather_condition_snow">Snow</string>
+    <string name="ax_dynamic_bar_weather_condition_mist">Fog</string>
+    <string name="ax_dynamic_bar_weather_condition_wind">Windy</string>
+    <string name="ax_dynamic_bar_weather_condition_unknown">Weather</string>
 </resources>

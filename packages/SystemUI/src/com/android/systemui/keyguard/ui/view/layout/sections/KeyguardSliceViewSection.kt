@@ -34,7 +34,6 @@ import com.android.systemui.keyguard.ui.binder.KeyguardSliceViewBinder
 import com.android.systemui.keyguard.ui.viewmodel.AodBurnInViewModel
 import com.android.systemui.keyguard.ui.viewmodel.KeyguardSmartspaceViewModel
 import com.android.systemui.plugins.ActivityStarter
-import com.android.systemui.plugins.keyguard.ui.clocks.ClockViewIds
 import com.android.systemui.power.domain.interactor.PowerInteractor
 import com.android.systemui.res.R
 import com.android.systemui.settings.DisplayTracker
@@ -121,10 +120,12 @@ constructor(
             )
             constrainHeight(R.id.keyguard_slice_view, ConstraintSet.WRAP_CONTENT)
 
+            // Keep the date/alarm row below the lockscreen weather line. The weather view is
+            // added by ClockSection and collapses to zero height when weather is hidden.
             connect(
                 R.id.keyguard_slice_view,
                 ConstraintSet.TOP,
-                ClockViewIds.LOCKSCREEN_CLOCK_VIEW_SMALL,
+                R.id.keyguard_weather_area,
                 ConstraintSet.BOTTOM,
             )
 
@@ -132,7 +133,7 @@ constructor(
                 R.id.smart_space_barrier_bottom,
                 Barrier.BOTTOM,
                 0,
-                *intArrayOf(R.id.keyguard_slice_view),
+                *intArrayOf(R.id.keyguard_slice_view, R.id.keyguard_weather_area),
             )
         }
     }

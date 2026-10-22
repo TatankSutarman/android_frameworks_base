@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="ax_dynamic_bar_weather_text"><xliff:g id="temperature" example="29">%1$s</xliff:g><xliff:g id="unit" example="°C">%2$s</xliff:g> · <xliff:g id="condition" example="Cerah">%3$s</xliff:g></string>
+    <string name="ax_dynamic_bar_weather_condition_clear">Cerah</string>
+    <string name="ax_dynamic_bar_weather_condition_clouds">Berawan</string>
+    <string name="ax_dynamic_bar_weather_condition_rain">Hujan</string>
+    <string name="ax_dynamic_bar_weather_condition_storm">Badai petir</string>
+    <string name="ax_dynamic_bar_weather_condition_snow">Salju</string>
+    <string name="ax_dynamic_bar_weather_condition_mist">Berkabut</string>
+    <string name="ax_dynamic_bar_weather_condition_wind">Berangin</string>
+    <string name="ax_dynamic_bar_weather_condition_unknown">Cuaca</string>
+</resources>

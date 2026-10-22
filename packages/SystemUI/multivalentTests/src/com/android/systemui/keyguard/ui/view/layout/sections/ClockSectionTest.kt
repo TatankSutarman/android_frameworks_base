@@ -49,7 +49,9 @@ import com.android.systemui.statusbar.notification.stack.domain.interactor.notif
 import com.android.systemui.statusbar.policy.fakeConfigurationController
 import com.android.systemui.statusbar.ui.fakeSystemBarUtilsProxy
 import com.android.systemui.testKosmos
+import com.android.systemui.weather.KeyguardWeatherController
 import com.google.common.truth.Truth.assertThat
+import javax.inject.Provider
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -112,6 +114,7 @@ class ClockSectionTest : SysuiTestCase() {
                     keyguardRootViewModel,
                     aodBurnInViewModel,
                     largeScreenHeaderHelperLazy = { mock<LargeScreenHeaderHelper>() },
+                    weatherControllerProvider = Provider { mock<KeyguardWeatherController>() },
                 )
         }
     }

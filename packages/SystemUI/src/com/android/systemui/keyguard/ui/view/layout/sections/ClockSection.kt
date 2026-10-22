@@ -18,13 +18,16 @@
 package com.android.systemui.keyguard.ui.view.layout.sections
 
 import android.content.Context
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.constraintlayout.widget.Barrier
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.constraintlayout.widget.ConstraintSet.BOTTOM
 import androidx.constraintlayout.widget.ConstraintSet.END
 import androidx.constraintlayout.widget.ConstraintSet.GONE
+import androidx.constraintlayout.widget.ConstraintSet.MATCH_CONSTRAINT
 import androidx.constraintlayout.widget.ConstraintSet.PARENT_ID
 import androidx.constraintlayout.widget.ConstraintSet.START
 import androidx.constraintlayout.widget.ConstraintSet.TOP
@@ -47,8 +50,10 @@ import com.android.systemui.shade.LargeScreenHeaderHelper
 import com.android.systemui.shade.ShadeDisplayAware
 import com.android.systemui.shared.R as sharedR
 import com.android.systemui.util.ui.value
+import com.android.systemui.weather.KeyguardWeatherController
 import dagger.Lazy
 import javax.inject.Inject
+import javax.inject.Provider
 import kotlinx.coroutines.DisposableHandle
 
 internal fun ConstraintSet.setVisibility(views: Iterable<View>, visibility: Int) =
@@ -74,10 +79,31 @@ constructor(
     private val rootViewModel: KeyguardRootViewModel,
     private val aodBurnInViewModel: AodBurnInViewModel,
     private val largeScreenHeaderHelperLazy: Lazy<LargeScreenHeaderHelper>,
+    private val weatherControllerProvider: Provider<KeyguardWeatherController>,
 ) : KeyguardSection() {
     private var disposableHandle: DisposableHandle? = null
+    private var weatherView: View? = null
+    private var weatherController: KeyguardWeatherController? = null
 
-    override fun addViews(constraintLayout: ConstraintLayout) {}
+    override fun addViews(constraintLayout: ConstraintLayout) {
+        if (weatherView?.parent === constraintLayout) return
+
+        weatherController?.stop()
+        weatherController = null
+        weatherView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        weatherView = null
+
+        val view =
+            LayoutInflater.from(constraintLayout.context)
+                .inflate(R.layout.keyguard_weather_area, constraintLayout, false)
+        constraintLayout.addView(view)
+        weatherView = view
+
+        weatherController =
+            weatherControllerProvider.get().also {
+                it.bind(view)
+            }
+    }
 
     override fun bindData(constraintLayout: ConstraintLayout) {
         disposableHandle?.dispose()
@@ -96,11 +122,49 @@ constructor(
     override fun applyConstraints(constraintSet: ConstraintSet) {
         keyguardClockViewModel.currentClock.value?.let { clock ->
             constraintSet.applyDeltaFrom(buildConstraints(clock, constraintSet))
+            applyWeatherConstraints(constraintSet)
+            weatherController?.start()
         }
     }
 
     override fun removeViews(constraintLayout: ConstraintLayout) {
         disposableHandle?.dispose()
+        disposableHandle = null
+
+        weatherController?.stop()
+        weatherController = null
+        weatherView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        weatherView = null
+    }
+
+    private fun applyWeatherConstraints(constraintSet: ConstraintSet) {
+        val view = weatherView ?: return
+        val isLargeClockVisible = keyguardClockViewModel.isLargeClockVisible.value
+        val clockViewId =
+            if (isLargeClockVisible) {
+                ClockViewIds.LOCKSCREEN_CLOCK_VIEW_LARGE
+            } else {
+                ClockViewIds.LOCKSCREEN_CLOCK_VIEW_SMALL
+            }
+
+        constraintSet.apply {
+            connect(view.id, TOP, clockViewId, BOTTOM)
+            connect(view.id, START, clockViewId, START)
+            if (isLargeClockVisible) {
+                // Keep the weather line inside the same split-shade column as the large clock.
+                connect(view.id, END, clockViewId, END)
+            } else {
+                connect(
+                    view.id,
+                    END,
+                    PARENT_ID,
+                    END,
+                    context.resources.getDimensionPixelSize(R.dimen.keyguard_weather_end_margin),
+                )
+            }
+            constrainWidth(view.id, MATCH_CONSTRAINT)
+            constrainHeight(view.id, WRAP_CONTENT)
+        }
     }
 
     private fun buildConstraints(

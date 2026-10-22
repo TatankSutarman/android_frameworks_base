@@ -365,6 +365,9 @@
     <!-- Permission for Smartspace. -->
     <uses-permission android:name="android.permission.MANAGE_SMARTSPACE" />
 
+    <!-- Read weather data from the OmniJaws provider for the lockscreen clock area. -->
+    <uses-permission android:name="org.omnirom.omnijaws.READ_WEATHER" />
+
     <uses-permission android:name="android.permission.READ_PEOPLE_DATA" />
 
     <uses-permission android:name="android.permission.BIND_APPWIDGET" />
