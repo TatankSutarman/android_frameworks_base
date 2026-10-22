@@ -27,6 +27,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.android.systemui.Flags
 import com.android.systemui.SysuiTestCase
+import com.android.systemui.axdynamicbar.domain.AxDynamicBarSettings
 import com.android.systemui.dump.DumpManager
 import com.android.systemui.flags.DisableSceneContainer
 import com.android.systemui.integration.SystemUiIntegrationTest
@@ -57,6 +58,7 @@ import com.android.systemui.util.settings.fakeSettings
 import com.google.common.truth.Truth.assertThat
 import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -90,6 +92,10 @@ class KeyguardMediaControllerTest : SysuiTestCase() {
     private val mediaViewModelFactory = kosmos.mediaViewModelFactory
     private val transitionRepository = kosmos.fakeKeyguardTransitionRepository
     private val secureSettings = kosmos.fakeSettings
+    private val axDynamicBarSettings =
+        mock<AxDynamicBarSettings>().also {
+            whenever(it.isLockscreenMediaEnabled).thenReturn(MutableStateFlow(false))
+        }
     private val mediaContainerView: MediaContainerView = MediaContainerView(context, null)
     private val hostView = UniqueObjectHostView(context)
     private lateinit var keyguardMediaController: KeyguardMediaController
@@ -129,6 +135,7 @@ class KeyguardMediaControllerTest : SysuiTestCase() {
                 kosmos.mediaCarouselInteractor,
                 mediaFalsingSystem,
                 kosmos.fakeSettings,
+                axDynamicBarSettings,
             )
         keyguardMediaController.attachSinglePaneContainer(mediaContainerView)
         keyguardMediaController.useSplitShade = false

@@ -301,6 +301,9 @@
     <!-- id for the composable battery meter (see UnifiedBattery.kt) -->
     <item type="id" name="battery_meter_composable_view" />
 
+    <!-- id for the Dynamic Bar media player hosted on the lockscreen -->
+    <item type="id" name="ax_dynamic_bar_keyguard_host" />
+
     <!-- Used for animation guard tag to throttle number of reported logs. -->
     <item type="id" name="screen_off_animation_guard_set" />
     <item type="id" name="screen_off_animation_guard_reported_wtf" />

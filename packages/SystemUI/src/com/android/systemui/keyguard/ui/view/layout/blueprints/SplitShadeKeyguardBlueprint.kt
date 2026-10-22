@@ -17,6 +17,7 @@
 
 package com.android.systemui.keyguard.ui.view.layout.blueprints
 
+import com.android.systemui.axdynamicbar.ui.AxDynamicBarKeyguardHostSection
 import com.android.systemui.dagger.SysUISingleton
 import com.android.systemui.keyguard.shared.model.KeyguardBlueprint
 import com.android.systemui.keyguard.shared.model.KeyguardSection
@@ -70,6 +71,7 @@ constructor(
     keyguardSliceViewSection: KeyguardSliceViewSection,
     smartspaceSection: SmartspaceSection,
     mediaSection: SplitShadeMediaSection,
+    axDynamicBarKeyguardHostSection: AxDynamicBarKeyguardHostSection,
 ) : KeyguardBlueprint {
     override val id: String = ID
 
@@ -92,6 +94,7 @@ constructor(
             clockSection,
             keyguardSliceViewSection,
             mediaSection,
+            axDynamicBarKeyguardHostSection,
             defaultDeviceEntrySection, // Add LAST: Intentionally has z-order above other views.
         )
     }

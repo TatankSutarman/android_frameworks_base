@@ -36,6 +36,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.android.systemui.Dumpable
+import com.android.systemui.axdynamicbar.domain.AxDynamicBarSettings
 import com.android.systemui.classifier.Classifier
 import com.android.systemui.dagger.SysUISingleton
 import com.android.systemui.dagger.qualifiers.Application
@@ -107,6 +108,7 @@ constructor(
     private val mediaCarouselInteractor: MediaCarouselInteractor,
     private val falsingSystem: MediaFalsingSystem,
     private val secureSettings: SecureSettings,
+    private val axDynamicBarSettings: AxDynamicBarSettings,
 ) : Dumpable {
     private var lastUsedStatusBarState = -1
 
@@ -170,6 +172,14 @@ constructor(
                     }
                     .collect { isMediaVisibleOnLockscreen = it }
             }
+        }
+        applicationScope.launch {
+            axDynamicBarSettings.isLockscreenMediaEnabled
+                .distinctUntilChanged()
+                .collect {
+                    // The Dynamic Bar owns the lockscreen media player while this is enabled.
+                    refreshMediaPosition(reason = "Dynamic Bar lockscreen media changed")
+                }
         }
         statusBarStateController.addCallback(
             object : StatusBarStateController.StateListener {
@@ -383,7 +393,8 @@ constructor(
             isMediaHostVisible &&
                 isBypassNotEnabled &&
                 keyguardOrUserSwitcher &&
-                shouldBeVisibleForSplitShade
+                shouldBeVisibleForSplitShade &&
+                !axDynamicBarSettings.isLockscreenMediaEnabled.value
         logger.logRefreshMediaPosition(
             reason = reason,
             visible = visible,

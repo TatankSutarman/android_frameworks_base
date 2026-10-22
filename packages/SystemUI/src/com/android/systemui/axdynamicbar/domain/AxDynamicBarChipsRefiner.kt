@@ -38,8 +38,8 @@ class AxDynamicBarChipsRefiner @Inject constructor(
     override fun transform(input: MultipleOngoingActivityChipsModel): MultipleOngoingActivityChipsModel {
         _chipsFlow.value = input
         if (!settings.isEnabled.value) return input
-        // The dynamic bar is not rendered on the keyguard yet, so keep the built-in chips as the
-        // fallback there instead of hiding them with no replacement.
+        // The lockscreen media player is hosted separately; keep the built-in chips as the
+        // fallback for other keyguard events instead of hiding them with no replacement.
         if (statusBarStateController.state == StatusBarState.KEYGUARD) return input
 
         return input.copy(

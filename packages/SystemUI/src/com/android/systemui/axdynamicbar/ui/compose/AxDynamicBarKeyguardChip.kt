@@ -86,6 +86,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -94,6 +95,7 @@ import androidx.compose.ui.unit.sp
 import com.android.systemui.axdynamicbar.model.IslandEvent
 import com.android.systemui.axdynamicbar.model.RecordingState
 import com.android.systemui.axdynamicbar.shared.*
+import com.android.systemui.axdynamicbar.ui.AxDynamicBarChipState
 import com.android.systemui.axdynamicbar.ui.AxDynamicBarChipViewModel
 import com.android.systemui.axdynamicbar.ui.KeyguardBatteryInfo
 import com.android.systemui.res.R
@@ -117,12 +119,26 @@ private fun rememberChargingParts(batteryString: String): List<String> {
     }
 }
 
+private fun AxDynamicBarChipState.toMediaOnlyState(): AxDynamicBarChipState? {
+    val mediaEvents = allEvents.filterIsInstance<IslandEvent.Media>()
+    val mediaEvent = event as? IslandEvent.Media ?: mediaEvents.firstOrNull() ?: return null
+    return copy(
+        event = mediaEvent,
+        eventCount = 0,
+        pinnedIndex = 0,
+        allEvents = mediaEvents.ifEmpty { listOf(mediaEvent) },
+        notificationAlert = null,
+    )
+}
+
 @Composable
 fun AxDynamicBarKeyguardChip(
     viewModel: AxDynamicBarChipViewModel,
     modifier: Modifier = Modifier,
+    mediaOnly: Boolean = false,
 ) {
-    val state by viewModel.chipState.collectAsStateWithLifecycle()
+    val rawState by viewModel.chipState.collectAsStateWithLifecycle()
+    val state = if (mediaOnly) rawState?.toMediaOnlyState() else rawState
     val isOnKeyguard by viewModel.isOnKeyguard.collectAsStateWithLifecycle()
     val isEnabled by viewModel.isEnabled.collectAsStateWithLifecycle()
     val isKeyguardEnabled by viewModel.isKeyguardEnabled.collectAsStateWithLifecycle()
@@ -130,16 +146,39 @@ fun AxDynamicBarKeyguardChip(
     val keyguardBatteryChipMode by viewModel.keyguardBatteryChipMode.collectAsStateWithLifecycle()
     val batteryInfo by viewModel.keyguardBatteryInfo.collectAsStateWithLifecycle()
     val isKeyguardExpanded by viewModel.isKeyguardExpanded.collectAsStateWithLifecycle()
+    val isDozing by viewModel.isDozing.collectAsStateWithLifecycle()
+    val isBouncerShowing by viewModel.isBouncerShowing.collectAsStateWithLifecycle()
+    val isKeyguardFadingAway by viewModel.isKeyguardFadingAway.collectAsStateWithLifecycle()
     val touchSlop = LocalViewConfiguration.current.touchSlop
     val batteryString by viewModel.batteryString.collectAsStateWithLifecycle()
 
     val motionScheme = MaterialTheme.motionScheme
     val expandableController = rememberExpandableController(color = Color.Transparent, shape = ChipShape)
 
+    val chipBottomPadding =
+        if (mediaOnly) {
+            dimensionResource(R.dimen.keyguard_affordance_vertical_offset) +
+                dimensionResource(R.dimen.keyguard_affordance_fixed_height) +
+                dimensionResource(R.dimen.keyguard_indication_margin_bottom) / 2f
+        } else {
+            0.dp
+        }
+
+    LaunchedEffect(isDozing, isBouncerShowing, isKeyguardFadingAway) {
+        if (isDozing || isBouncerShowing || isKeyguardFadingAway) {
+            viewModel.keyguardExpansion.collapse()
+        }
+    }
+
     Box(modifier = modifier) {
 
         val expandedVisibleState = remember { MutableTransitionState(false) }
-        expandedVisibleState.targetState = isKeyguardExpanded && state != null
+        expandedVisibleState.targetState =
+            isKeyguardExpanded &&
+                state != null &&
+                !isDozing &&
+                !isBouncerShowing &&
+                !isKeyguardFadingAway
         LaunchedEffect(expandedVisibleState.isIdle, expandedVisibleState.currentState) {
             if (expandedVisibleState.isIdle && !expandedVisibleState.currentState) {
                 viewModel.keyguardExpansion.notifyCollapseSettled()
@@ -166,27 +205,39 @@ fun AxDynamicBarKeyguardChip(
 
         val isLockscreenMediaLyricsEnabled by viewModel.isLockscreenMediaLyricsEnabled.collectAsStateWithLifecycle()
         val displayEventState = state?.notificationAlert ?: state?.event
-        val isLyricsShowing = isLockscreenMediaLyricsEnabled && state != null && displayEventState is IslandEvent.Media
+        val isLyricsShowing =
+            !mediaOnly &&
+                isLockscreenMediaLyricsEnabled &&
+                state != null &&
+                displayEventState is IslandEvent.Media
         val isAnyFeatureEnabled = isEnabled || isLockscreenMediaEnabled || isLyricsShowing
 
-        val isDozing by viewModel.isDozing.collectAsStateWithLifecycle()
-        val visibleOnKeyguard = if (isDozing) {
-            isLyricsShowing
-        } else {
-            isAnyFeatureEnabled && (isKeyguardEnabled || isLockscreenMediaEnabled || isLockscreenMediaLyricsEnabled)
-        }
+        val visibleOnKeyguard =
+            when {
+                isDozing -> !mediaOnly && isLyricsShowing
+                mediaOnly -> isLockscreenMediaEnabled && state != null
+                else ->
+                    isAnyFeatureEnabled &&
+                        (isKeyguardEnabled || isLockscreenMediaEnabled || isLockscreenMediaLyricsEnabled)
+            }
 
         val isBatteryChipEnabled = keyguardBatteryChipMode > 0
         val isBatteryChipVisible = isBatteryChipEnabled && (keyguardBatteryChipMode == 2 || (keyguardBatteryChipMode == 1 && batteryInfo.isCharging))
 
-        val canShowChipOnKeyguard = if (state != null) {
-            visibleOnKeyguard
-        } else {
-            isBatteryChipVisible && isEnabled && isKeyguardEnabled && !isDozing
-        }
+        val canShowChipOnKeyguard =
+            when {
+                mediaOnly -> state != null && visibleOnKeyguard
+                state != null -> visibleOnKeyguard
+                else -> isBatteryChipVisible && isEnabled && isKeyguardEnabled && !isDozing
+            }
 
         AnimatedVisibility(
-            visible = isOnKeyguard && canShowChipOnKeyguard && !isKeyguardExpanded,
+            visible =
+                isOnKeyguard &&
+                    canShowChipOnKeyguard &&
+                    !isKeyguardExpanded &&
+                    !isBouncerShowing &&
+                    !isKeyguardFadingAway,
             enter = fadeIn(tween(durationMillis = 200, delayMillis = 300)) +
                 scaleIn(
                     initialScale = 0.9f,
@@ -195,6 +246,7 @@ fun AxDynamicBarKeyguardChip(
             exit = fadeOut(motionScheme.fastEffectsSpec()) + scaleOut(targetScale = 0.9f, animationSpec = motionScheme.fastSpatialSpec()),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .padding(bottom = chipBottomPadding)
                 .pointerInput(viewModel) {
                     awaitEachGesture {
                         val down = awaitFirstDown(pass = PointerEventPass.Initial)
