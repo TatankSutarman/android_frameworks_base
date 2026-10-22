@@ -522,7 +522,10 @@ private fun KeyguardChipBody(
                                 Icons.Filled.Pause
                             else
                                 Icons.Filled.PlayArrow,
-                            contentDescription = null,
+                            contentDescription = stringResource(
+                                if (event.isPlaying) R.string.ax_dynamic_bar_pause
+                                else R.string.ax_dynamic_bar_play
+                            ),
                             tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
