@@ -67,7 +67,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -87,7 +86,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -140,13 +138,12 @@ fun AxDynamicBarKeyguardChip(
 ) {
     val rawState by viewModel.chipState.collectAsStateWithLifecycle()
     val state = if (mediaOnly) rawState?.toMediaOnlyState() else rawState
-    // The legacy keyguard expansion only opens once the shade is fully expanded. The
-    // lockscreen media host is directly tappable, so it keeps its own expansion state.
-    var mediaExpanded by remember { mutableStateOf(false) }
     val isOnKeyguard by viewModel.isOnKeyguard.collectAsStateWithLifecycle()
     val isEnabled by viewModel.isEnabled.collectAsStateWithLifecycle()
     val isKeyguardEnabled by viewModel.isKeyguardEnabled.collectAsStateWithLifecycle()
     val isLockscreenMediaEnabled by viewModel.isLockscreenMediaEnabled.collectAsStateWithLifecycle()
+    val isLockscreenMediaExpanded by
+        viewModel.isLockscreenMediaExpanded.collectAsStateWithLifecycle()
     val keyguardBatteryChipMode by viewModel.keyguardBatteryChipMode.collectAsStateWithLifecycle()
     val batteryInfo by viewModel.keyguardBatteryInfo.collectAsStateWithLifecycle()
     val isKeyguardExpanded by viewModel.isKeyguardExpanded.collectAsStateWithLifecycle()
@@ -158,24 +155,16 @@ fun AxDynamicBarKeyguardChip(
 
     val motionScheme = MaterialTheme.motionScheme
     val expandableController = rememberExpandableController(color = Color.Transparent, shape = ChipShape)
-    val isExpanded = if (mediaOnly) mediaExpanded else isKeyguardExpanded
+    val isExpanded =
+        if (mediaOnly) isLockscreenMediaExpanded else isKeyguardExpanded
     val hasMediaState = state != null
     val onExpandToggle: () -> Unit = {
         if (mediaOnly) {
-            mediaExpanded = !mediaExpanded
+            viewModel.toggleLockscreenMediaExpanded()
         } else {
             viewModel.keyguardExpansion.toggle()
         }
     }
-
-    val chipBottomPadding =
-        if (mediaOnly) {
-            dimensionResource(R.dimen.keyguard_affordance_vertical_offset) +
-                dimensionResource(R.dimen.keyguard_affordance_fixed_height) +
-                dimensionResource(R.dimen.keyguard_indication_margin_bottom) / 2f
-        } else {
-            0.dp
-        }
 
     LaunchedEffect(
         mediaOnly,
@@ -193,7 +182,7 @@ fun AxDynamicBarKeyguardChip(
                 isDozing ||
                 isBouncerShowing ||
                 isKeyguardFadingAway) {
-                mediaExpanded = false
+                viewModel.collapseLockscreenMediaExpanded()
             }
         } else if (isDozing || isBouncerShowing || isKeyguardFadingAway) {
             viewModel.keyguardExpansion.collapse()
@@ -231,7 +220,7 @@ fun AxDynamicBarKeyguardChip(
                     interactor = viewModel.interactor,
                     onCollapse = {
                         if (mediaOnly) {
-                            mediaExpanded = false
+                            viewModel.collapseLockscreenMediaExpanded()
                         } else {
                             viewModel.keyguardExpansion.collapse()
                         }
@@ -284,7 +273,6 @@ fun AxDynamicBarKeyguardChip(
             exit = fadeOut(motionScheme.fastEffectsSpec()) + scaleOut(targetScale = 0.9f, animationSpec = motionScheme.fastSpatialSpec()),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = chipBottomPadding)
                 .pointerInput(viewModel) {
                     awaitEachGesture {
                         val down = awaitFirstDown(pass = PointerEventPass.Initial)

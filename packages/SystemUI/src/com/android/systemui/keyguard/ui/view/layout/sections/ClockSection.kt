@@ -42,6 +42,7 @@ import com.android.systemui.keyguard.ui.binder.KeyguardClockViewBinder
 import com.android.systemui.keyguard.ui.viewmodel.AodBurnInViewModel
 import com.android.systemui.keyguard.ui.viewmodel.KeyguardClockViewModel
 import com.android.systemui.keyguard.ui.viewmodel.KeyguardRootViewModel
+import com.android.systemui.keyguard.ui.viewmodel.KeyguardSmartspaceViewModel
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockController
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockFaceLayout
 import com.android.systemui.plugins.keyguard.ui.clocks.ClockViewIds
@@ -146,22 +147,16 @@ constructor(
             } else {
                 ClockViewIds.LOCKSCREEN_CLOCK_VIEW_SMALL
             }
+        val startMargin = KeyguardSmartspaceViewModel.getDateWeatherStartMargin(context)
+        val endMargin = KeyguardSmartspaceViewModel.getDateWeatherEndMargin(context)
 
         constraintSet.apply {
             connect(view.id, TOP, clockViewId, BOTTOM)
-            connect(view.id, START, clockViewId, START)
-            if (isLargeClockVisible) {
-                // Keep the weather line inside the same split-shade column as the large clock.
-                connect(view.id, END, clockViewId, END)
-            } else {
-                connect(
-                    view.id,
-                    END,
-                    PARENT_ID,
-                    END,
-                    context.resources.getDimensionPixelSize(R.dimen.keyguard_weather_end_margin),
-                )
-            }
+            // Align with the date/weather column rather than the clock's outer view. The large
+            // clock view starts at the parent edge, so using it directly would pin the weather to
+            // x=0 instead of the clock's visual content inset.
+            connect(view.id, START, PARENT_ID, START, startMargin)
+            connect(view.id, END, PARENT_ID, END, endMargin)
             constrainWidth(view.id, MATCH_CONSTRAINT)
             constrainHeight(view.id, WRAP_CONTENT)
         }

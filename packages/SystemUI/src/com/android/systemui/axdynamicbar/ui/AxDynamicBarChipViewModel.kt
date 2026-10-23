@@ -122,6 +122,12 @@ constructor(
 
     init {
         applicationScope.launch {
+            interactor.isOnKeyguard.collect { onKeyguard ->
+                if (!onKeyguard) collapseLockscreenMediaExpanded()
+            }
+        }
+
+        applicationScope.launch {
             interactor.uiState
                 .map { state ->
                     if (!interactor.settings.isNotificationEventsActive()) {
@@ -187,6 +193,24 @@ constructor(
     val isExpanded: StateFlow<Boolean> = statusBarExpansion.isExpanded
 
     val isKeyguardExpanded: StateFlow<Boolean> = keyguardExpansion.isExpanded
+
+    /**
+     * Separate expansion state for the lockscreen media-only host.
+     *
+     * The regular keyguard expansion can only settle after the shade is fully expanded. The media
+     * bar must open directly from its compact form, so it keeps its own state. The keyguard host
+     * section observes this to resize the host between its collapsed and expanded constraints.
+     */
+    private val _isLockscreenMediaExpanded = MutableStateFlow(false)
+    val isLockscreenMediaExpanded: StateFlow<Boolean> = _isLockscreenMediaExpanded.asStateFlow()
+
+    fun toggleLockscreenMediaExpanded() {
+        _isLockscreenMediaExpanded.value = !_isLockscreenMediaExpanded.value
+    }
+
+    fun collapseLockscreenMediaExpanded() {
+        _isLockscreenMediaExpanded.value = false
+    }
 
     @Volatile private var outsideCollapseDownTime = NO_OUTSIDE_COLLAPSE
 

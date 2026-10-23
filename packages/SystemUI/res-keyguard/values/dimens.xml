@@ -189,6 +189,6 @@
     <dimen name="appclips_backlinks_icon_size">24dp</dimen>
 
     <!-- Lockscreen weather line shown below the clock. -->
-    <dimen name="keyguard_weather_top_margin">6dp</dimen>
+    <dimen name="keyguard_weather_top_margin">8dp</dimen>
     <dimen name="keyguard_weather_end_margin">24dp</dimen>
 </resources>
